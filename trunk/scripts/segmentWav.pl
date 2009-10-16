@@ -37,7 +37,7 @@ foreach $newsSource (@newsSources){
       $currentLine =~ /.+Bsec=(.+) Dur=.*/;
       $endTime = $1;
       $inputFileName = "$wavDir/$newsSource/$filename.wav";
-      $outputFileName = "$outputDir/$newsSource/$asr"."_$segCount";
+      $outputFileName = "$outputDir/$newsSource/$filename"."_$segCount.wav";
       system("\$ESTDIR/bin/ch_wave $inputFileName -start $startTime -end $endTime -o $outputFileName");
       print "Done with $filename\_$segCount\n";
       $segCount ++;
