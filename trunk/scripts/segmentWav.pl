@@ -33,6 +33,11 @@ foreach $newsSource (@newsSources){
       while ($lineNum < $numLines && ($currentLine = $lines[$lineNum]) !~ /<X.+/){
         $lineNum ++;
       }
+      #now at a silence, will skip another silence
+      $lineNum++;
+      while ($lineNum < $numLines && ($currentLine = $lines[$lineNum]) !~ /<X.+/){
+        $lineNum ++;
+      }
       #now $currentLine contains silence
       $currentLine =~ /.+Bsec=(.+) Dur=.*/;
       $endTime = $1;
