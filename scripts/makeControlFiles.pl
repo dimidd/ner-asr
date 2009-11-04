@@ -1,4 +1,4 @@
-$wavDir = "../../data/TDT4_ENG_1/wav/ABC_ENG";
+$wavDir = "../../data/TDT4_ENG_1/wavSeg/ABC_ENG";
 chdir $wavDir or die("Can't change into $wavDir");
 $cwd = `pwd`;
 @wavFiles = `ls *.wav`;
