@@ -7,9 +7,9 @@ while ($i < @wavFiles){
   $j = 0;
   $fileName = "control_$i.ctl";
   open CONTROL, "> $fileName";
-  while ($j < 500){
-    chomp($wavFiles[$j]);
-    print CONTROL "$wavFiles[$j]\n";
+  while ($j < 5){
+    chomp($wavFiles[$i]);
+    print CONTROL "$wavFiles[$i]\n";
     $j++;
     $i++;
   }
