@@ -8,11 +8,30 @@ import edu.cmu.minorthird.ui.Recommended;
 import edu.cmu.minorthird.util.gui.SmartVanillaViewer;
 import edu.cmu.minorthird.util.gui.ViewerFrame;
 
+import java.util.*;
+import java.io.*;
+
 public class TestCRF {
+private static Map<String,String> phonemicSpelling ;
+  
   public static void main(String[] args){
 	  try{
 		// load data from dataDir into labels
-		File dataDir = new File("experiments/non_corrupted_data/data");
+		String dirName = "experiments/bad_asr/data";
+		
+		phonemicSpelling  = new HashMap<String,String>();
+		BufferedReader reader = new BufferedReader(new FileReader(dirName+"/phone_spellings"));
+		String str;
+		while((str=reader.readLine())!=null)
+		{
+		     String word = str.split("\t")[0];
+		     String phone_spelling = str.split("\t")[1];
+		     phonemicSpelling.put(word, phone_spelling);
+		     
+		}
+		reader.close();
+		File dataDir = new File(dirName);
+		
 	  	TextBaseLoader loader = new TextBaseLoader(TextBaseLoader.DOC_PER_FILE, true);
 	  	loader.load(dataDir);
 	  	BasicTextLabels labels = (BasicTextLabels)loader.getLabels();
@@ -47,6 +66,7 @@ public class TestCRF {
 	  	Recommended.MultitokenSpanFE vanillaFE = new Recommended.MultitokenSpanFE();
 	  	vanillaFE.setUseCharTypePattern(false);
 	  	vanillaFE.setFeatureWindowSize(4);
+	  	
 	  	// set the features that this learner will use
 	  	//learner.setSpanFeatureExtractor(customFE);
 	  	learner.setSpanFeatureExtractor(vanillaFE);
@@ -64,4 +84,6 @@ public class TestCRF {
 		e.printStackTrace();
 	  }
   }
+  
+
 }
