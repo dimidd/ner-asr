@@ -61,8 +61,9 @@ public class TestCRF {
 			vanillaFE.setFeatureWindowSize(4);
 
 			// set the features that this learner will use
-			learner.setSpanFeatureExtractor(new CustomFE());
 			//learner.setSpanFeatureExtractor(vanillaFE);
+			//learner.setSpanFeatureExtractor(new PhoneUnigramFE());
+			learner.setSpanFeatureExtractor(new PhoneBigramFE());
 			learner.setAnnotationType("_prediction");
 			int num_partitions = 10;
 			CrossValSplitter<Span> splitter=new CrossValSplitter<Span>(num_partitions);
@@ -82,9 +83,9 @@ public class TestCRF {
 			e.printStackTrace();
 		}
 	}
-	public static class CustomFE extends SpanFE{
+	public static class PhoneUnigramFE extends SpanFE{
 		// prepare the feature extractor
-		private int windowSize = 4;
+		protected int windowSize = 4;
 		public void extractFeatures(TextLabels labels, Span span){
 			// add bag of words for all tokens in this span and in the surrounding
 			// window of size windowSize
@@ -94,35 +95,58 @@ public class TestCRF {
 			
 			//System.out.println("Currently in document: "+span.getDocumentId());
 			ArrayList<String> tokens = new ArrayList<String>();
+			//add token to list of tokens in left to right order
+			for (int i = windowSize; i > 0; i--){
+				String token = from(span).left().subSpan(-i, 1).getSpan().asString();
+				if (!token.equals("_UNALIGNED_") && !token.equals(""))
+					tokens.add(token);
+			}
 			for (int i = 0; i < span.size(); i++){
 				String token = span.subSpan(i, 1).asString();
 				if (!token.equals("_UNALIGNED_") && !token.equals(""))
 					tokens.add(token);
 			}
 			for (int i = 0; i < windowSize; i ++){
-				String token = from(span).left().subSpan(-i-1, 1).getSpan().asString();
-				if (!token.equals("_UNALIGNED_") && !token.equals(""))
-					tokens.add(token);
-				token = from(span).right().subSpan(i, 1).getSpan().asString();
+				String token = from(span).right().subSpan(i, 1).getSpan().asString();
 				if (!token.equals("_UNALIGNED_") && !token.equals(""))
 					tokens.add(token);
 			}
+			
 			HashMap<String, Integer> phoneCounts = getPhoneCounts(tokens);
 			for (String phone : phoneCounts.keySet()){
 				instance.addNumeric(new Feature(phone), phoneCounts.get(phone));
 			}
 		}
 		private HashMap<String, Integer> getPhoneCounts(ArrayList<String> tokens){
-			HashMap<String, Integer> phoneCounts = new HashMap<String, Integer>();
+			HashMap<String, Integer> phoneUnigramCounts = new HashMap<String, Integer>();
 			for (String token : tokens){
 				String tokenPhones = phonemicSpelling.get(token);
 				//System.out.println(token+":"+tokenPhones);
-				for (String phone : tokenPhones.split("\\s+")){
-					int count = !phoneCounts.containsKey(phone) ? 0 : phoneCounts.get(phone);
-					phoneCounts.put(phone, count+1); 
+				for (String phoneUnigram : tokenPhones.split("\\s+")){
+					int count = !phoneUnigramCounts.containsKey(phoneUnigram) ? 0 : 
+						phoneUnigramCounts.get(phoneUnigram);
+					phoneUnigramCounts.put(phoneUnigram, count+1); 
 				}
 			} 
-			return phoneCounts;
+			return phoneUnigramCounts;
+		}
+	}
+	public static class PhoneBigramFE extends PhoneUnigramFE{
+		private HashMap<String, Integer> getPhoneCounts(ArrayList<String> tokens){
+			HashMap<String, Integer> phoneBigramCounts = new HashMap<String, Integer>();
+			ArrayList<String> phoneUnigrams = new ArrayList<String>();
+			for (String token : tokens){
+				String tokenPhones = phonemicSpelling.get(token);
+				for (String phoneUnigram : tokenPhones.split("\\s+"))
+					phoneUnigrams.add(phoneUnigram);
+			}
+			for (int i = 0; i < phoneUnigrams.size() - 1; i++){
+				String phoneBigram = phoneUnigrams.get(i)+ " " + phoneUnigrams.get(i+1);
+				int count = !phoneBigramCounts.containsKey(phoneBigram) ? 0 :
+					phoneBigramCounts.get(phoneBigram);
+				phoneBigramCounts.put(phoneBigram, count+1);
+			}
+			return phoneBigramCounts;
 		}
 	}
 }
