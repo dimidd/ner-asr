@@ -11,7 +11,7 @@ foreach my $markupFile (@markupFiles){
   chomp($markupFile);
   if ($markupFile =~ /(.*)_APF\.XML/){
     my $srcFile = "$1\.SGM";
-    my $destFile= "$1.txt"; #SIM for simple
+    my $destFile= "$1.txt";
     my @names = extractNamesFromStandoff($markupFile);
     my $namesRef = \@names;
     addTagsToSource($namesRef, $srcFile, $destFile);

@@ -85,7 +85,7 @@ public class TestCRF {
 	}
 	public static class PhoneUnigramFE extends SpanFE{
 		// prepare the feature extractor
-		protected int windowSize = 4;
+		protected int windowSize = 2;
 		public void extractFeatures(TextLabels labels, Span span){
 			// add bag of words for all tokens in this span and in the surrounding
 			// window of size windowSize
