@@ -63,7 +63,10 @@ public class TestCRF {
 			// set the features that this learner will use
 			//learner.setSpanFeatureExtractor(vanillaFE);
 			//learner.setSpanFeatureExtractor(new PhoneUnigramFE());
-			learner.setSpanFeatureExtractor(new PhoneBigramFE());
+			PhoneUnigramFE fe = new PhoneUnigramFE();
+			fe.setUseCurrentSpan(false);
+			
+			learner.setSpanFeatureExtractor(fe);
 			learner.setAnnotationType("_prediction");
 			int num_partitions = 10;
 			CrossValSplitter<Span> splitter=new CrossValSplitter<Span>(num_partitions);
@@ -86,6 +89,13 @@ public class TestCRF {
 	public static class PhoneUnigramFE extends SpanFE{
 		// prepare the feature extractor
 		protected int windowSize = 2;
+		protected boolean useCurrentSpan = true;
+		public void setWindowSize(int n){
+			windowSize = n;
+		}
+		public void setUseCurrentSpan(boolean useCurrentSpan){
+			this.useCurrentSpan = useCurrentSpan;
+		}
 		public void extractFeatures(TextLabels labels, Span span){
 			// add bag of words for all tokens in this span and in the surrounding
 			// window of size windowSize
@@ -101,10 +111,12 @@ public class TestCRF {
 				if (!token.equals("_UNALIGNED_") && !token.equals(""))
 					tokens.add(token);
 			}
-			for (int i = 0; i < span.size(); i++){
-				String token = span.subSpan(i, 1).asString();
-				if (!token.equals("_UNALIGNED_") && !token.equals(""))
-					tokens.add(token);
+			if (useCurrentSpan){
+				for (int i = 0; i < span.size(); i++){
+					String token = span.subSpan(i, 1).asString();
+					if (!token.equals("_UNALIGNED_") && !token.equals(""))
+						tokens.add(token);
+				}
 			}
 			for (int i = 0; i < windowSize; i ++){
 				String token = from(span).right().subSpan(i, 1).getSpan().asString();
