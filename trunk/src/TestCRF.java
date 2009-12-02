@@ -65,6 +65,7 @@ public class TestCRF {
 			//learner.setSpanFeatureExtractor(new PhoneUnigramFE());
 			PhoneUnigramFE fe = new PhoneUnigramFE();
 			fe.setUseCurrentSpan(false);
+			fe.setWindowSize(3);
 			
 			learner.setSpanFeatureExtractor(fe);
 			learner.setAnnotationType("_prediction");
