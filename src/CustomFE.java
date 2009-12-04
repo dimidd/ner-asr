@@ -26,16 +26,23 @@ public class CustomFE {
 			e.printStackTrace();
 		}
 	}
-	public static class PhoneUnigramFE extends SpanFE{
+	public static class PhoneFE extends SpanFE{
 		// prepare the feature extractor
 		protected int windowSize = 2;
-		protected boolean useCurrentSpan = true;
-		public void setWindowSize(int n){
-			windowSize = n;
+		protected boolean useCurrentSpan = false;
+		protected boolean usePhoneUnigrams = true;
+		protected boolean usePhoneBigrams = false;
+		protected boolean usePhoneTypePattern = true;
+		
+		public PhoneFE(int windowSize, boolean useCurrentSpan,boolean usePhoneUnigrams,
+				boolean usePhoneBigrams, boolean usePhoneTypePattern){
+			this.windowSize = windowSize;
+			this.useCurrentSpan = usePhoneBigrams ? true : useCurrentSpan;
+			this.usePhoneUnigrams = usePhoneUnigrams;
+			this.usePhoneBigrams = usePhoneBigrams;
+			this.usePhoneTypePattern = usePhoneTypePattern;
 		}
-		public void setUseCurrentSpan(boolean useCurrentSpan){
-			this.useCurrentSpan = useCurrentSpan;
-		}
+		
 		public void extractFeatures(TextLabels labels, Span span){
 			// add bag of words for all tokens in this span and in the surrounding
 			// window of size windowSize
@@ -46,9 +53,22 @@ public class CustomFE {
 			//System.out.println("Currently in document: "+span.getDocumentId());
 			
 			ArrayList<String> tokens = getTokenSequence(span);
-			HashMap<String, Integer> phoneCounts = getPhoneCounts(tokens);
-			for (String phone : phoneCounts.keySet()){
-				instance.addNumeric(new Feature(phone), phoneCounts.get(phone));
+			if (usePhoneUnigrams){
+				HashMap<String, Integer> phoneUnigramCounts = getPhoneUnigramCounts(tokens);
+				for (String phone : phoneUnigramCounts.keySet())
+					instance.addNumeric(new Feature(phone), phoneUnigramCounts.get(phone));
+			}
+			if (usePhoneBigrams){
+				HashMap<String, Integer> phoneBigramCounts = getPhoneBigramCounts(tokens);
+				for (String phone : phoneBigramCounts.keySet())
+					instance.addNumeric(new Feature(phone), phoneBigramCounts.get(phone));
+			}
+			if (usePhoneTypePattern){
+				for (String token : tokens){
+					ArrayList<String> phoneTypePatterns = getPhoneTypePattern(token);
+					for (String pattern : phoneTypePatterns)
+						instance.addBinary(new Feature(pattern));
+				}
 			}
 		}
 		
@@ -78,7 +98,7 @@ public class CustomFE {
 		}
 		
 		
-		private HashMap<String, Integer> getPhoneCounts(ArrayList<String> tokens){
+		private HashMap<String, Integer> getPhoneUnigramCounts(ArrayList<String> tokens){
 			HashMap<String, Integer> phoneUnigramCounts = new HashMap<String, Integer>();
 			for (String token : tokens){
 				String tokenPhones = phonemicSpelling.get(token);
@@ -92,10 +112,7 @@ public class CustomFE {
 			return phoneUnigramCounts;
 		}
 		
-		
-	}
-	public static class PhoneBigramFE extends PhoneUnigramFE{
-		private HashMap<String, Integer> getPhoneCounts(ArrayList<String> tokens){
+		private HashMap<String, Integer> getPhoneBigramCounts(ArrayList<String> tokens){
 			HashMap<String, Integer> phoneBigramCounts = new HashMap<String, Integer>();
 			ArrayList<String> phoneUnigrams = new ArrayList<String>();
 			for (String token : tokens){
@@ -111,7 +128,45 @@ public class CustomFE {
 			}
 			return phoneBigramCounts;
 		}
-	}	
-	public static class
+		private ArrayList<String> getPhoneTypePattern(String token){
+			String tokenPhones = phonemicSpelling.get(token);
+			tokenPhones += " ";
+			ArrayList<String> results = new ArrayList<String>();
+			//replace phones in a certain class with its class name
+			String[][] partitions = {{"vowel", "consonant"}, {"voiced", "unvoiced"}};
+			for (String[] partition : partitions){
+				String currentResult = tokenPhones;
+				for (String type : partition){
+					String[] patternAssoc = getPatternAssoc(type);
+					currentResult = currentResult.replaceAll(patternAssoc[0], patternAssoc[1]);
+				}
+				results.add(currentResult);
+			}
+			return results;
+		}
+		private String[] getPatternAssoc(String type){
+			String surfacePattern = "";
+			String typePattern = "";
+			if (type.equals("vowel")){
+				surfacePattern = "((iy|ih|eh|ae|aa|er|ah|ax|ao|uw|uh|ow|axr|ax-h) )+";
+				typePattern = "v+";
+			}
+			else if (type.equals("consonant")){
+				surfacePattern = "((b|d|g|p|q|t|k|dx|bcl|dcl|gcl|pcl|tcl|kcl|jh|ch|z|zh|" +
+						"v|dh|s|sh|f|v|th|m|n|nx|ng|em|en|eng|l|r|y|w|el|hh|hv|"+
+						"pau|epi|wb|sb )+";
+				typePattern = "c+";
+			}
+			else if (type.equals("voiced")){
+				//TODO : fill out voiced phones
+			}
+			else if (type.equals("unvoiced")){
+				//TODO : fill out unvoiced phones
+			}
+			//TODO: add more phone classes
+			
+			String[] patternAssoc = {surfacePattern, typePattern};
+			return patternAssoc;
+		}
+	}
 }
-
