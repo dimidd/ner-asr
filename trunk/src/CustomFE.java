@@ -5,6 +5,8 @@ import edu.cmu.minorthird.classify.Feature;
 import edu.cmu.minorthird.text.Span;
 import edu.cmu.minorthird.text.TextLabels;
 import edu.cmu.minorthird.text.learn.SpanFE;
+import edu.stanford.nlp.trees.*;
+import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 
 
 public class CustomFE {
@@ -133,7 +135,7 @@ public class CustomFE {
 			tokenPhones += " ";
 			ArrayList<String> results = new ArrayList<String>();
 			//replace phones in a certain class with its class name
-			String[][] partitions = {{"vowel", "consonant"}, {"voiced", "unvoiced"}};
+			String[][] partitions = {{"vowel", "consonant"}, {"non-sibilant", "sibilant","vowel", "sonorant"},{"non-sibilant", "sibilant","sonorant","vowel-front","vowel-mid","vowel-back",},{"glide","nasal","plosive","fricative","approximant","trill","glide","vowel-front","vowel-mid","vowel-back"}};
 			for (String[] partition : partitions){
 				String currentResult = tokenPhones;
 				for (String type : partition){
@@ -169,4 +171,88 @@ public class CustomFE {
 			return patternAssoc;
 		}
 	}
+	
+	public static class ParserFE extends SpanFE{
+		
+		protected int windowSize = 3;
+		protected boolean useCurrentSpan = true;
+		
+		protected LexicalizedParser lp;
+		public ParserFE()
+		{
+			lp = new LexicalizedParser("lib/parser/englishPCFG.ser.gz");
+		    lp.setOptionFlags(new String[]{"-maxLength", "80", "-retainTmpSubcategories"});
+
+		}
+		public void setWindowSize(int n){
+			windowSize = n;
+		}
+		public void setUseCurrentSpan(boolean useCurrentSpan){
+			this.useCurrentSpan = useCurrentSpan;
+		}
+		public void extractFeatures(TextLabels labels, Span span)
+		{   
+			from(span).tokens().emit();
+			from(span).left().subSpan(- windowSize, windowSize).emit();
+			from(span).right().subSpan(0, windowSize).emit();
+			
+			ArrayList<String> tokens = getTokenSequence(span);
+			String parseStr = getParse(tokens);
+			System.out.println(parseStr);
+			
+			if(parseStr.startsWith("(ROOT (NP "))
+			{
+				instance.addBinary(new Feature("NP"));
+			}
+			
+			
+		}
+		private String getParse(ArrayList<String> phrase)
+		{
+			
+		    //String[] sent = { "This", "is", "an", "easy", "sentence", "." };
+		    //sent = phrase.split(" ");
+		    Tree parse = (Tree) lp.apply(phrase);
+		    //parse.pennPrint();
+		    //System.out.println();
+
+		    TreebankLanguagePack tlp = new PennTreebankLanguagePack();
+		    GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
+		    GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
+		    Collection tdl = gs.typedDependenciesCollapsed();
+		    //System.out.println(tdl);
+		    //System.out.println();
+
+		    TreePrint tp = new TreePrint("penn,typedDependenciesCollapsed");
+		    //tp.printTree(parse);
+		    
+		    return parse.flatten().toString();
+		}
+		private ArrayList<String> getTokenSequence(Span span)
+		{
+			ArrayList<String> tokens = new ArrayList<String>();
+			//add token to list of tokens in left to right order
+			for (int i = windowSize; i > 0; i--){
+				String token = from(span).left().subSpan(-i, 1).getSpan().asString();
+				if (!token.equals("_UNALIGNED_") && !token.equals(""))
+					tokens.add(token.toLowerCase());
+			}
+			if (useCurrentSpan){
+				for (int i = 0; i < span.size(); i++){
+					String token = span.subSpan(i, 1).asString();
+					if (!token.equals("_UNALIGNED_") && !token.equals(""))
+						tokens.add(token.toLowerCase());
+				}
+			}
+			for (int i = 0; i < windowSize; i ++){
+				String token = from(span).right().subSpan(i, 1).getSpan().asString();
+				if (!token.equals("_UNALIGNED_") && !token.equals(""))
+					tokens.add(token.toLowerCase());
+			}
+			
+			return tokens;
+		}
+		
+	}
+
 }
