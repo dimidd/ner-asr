@@ -18,7 +18,8 @@ public class TestCRF {
 	public static void main(String[] args){
 		try{
 			// load data from dataDir into labels
-			String dirName = "experiments/nice_asr/labeled";
+			//String dirName = "experiments/nice_asr/labeled";
+			String dirName = "experiments/bad_asr/data";
 
 			phonemicSpelling  = new HashMap<String,String>();
 			BufferedReader reader = new BufferedReader(new FileReader(dirName+"/../phone_spellings"));
@@ -63,7 +64,7 @@ public class TestCRF {
 			// set the features that this learner will use
 			//learner.setSpanFeatureExtractor(vanillaFE);
 			//learner.setSpanFeatureExtractor(new PhoneUnigramFE());
-			PhoneUnigramFE fe = new PhoneUnigramFE();
+			PhoneUnigramFE fe = new PhoneBigramFE();
 			fe.setUseCurrentSpan(false);
 			fe.setWindowSize(3);
 			
@@ -105,6 +106,37 @@ public class TestCRF {
 			from(span).right().subSpan(0, windowSize).emit();
 			
 			//System.out.println("Currently in document: "+span.getDocumentId());
+			
+			/*
+			ArrayList<String> tokens = new ArrayList<String>();
+			//add token to list of tokens in left to right order
+			for (int i = windowSize; i > 0; i--){
+				String token = from(span).left().subSpan(-i, 1).getSpan().asString();
+				if (!token.equals("_UNALIGNED_") && !token.equals(""))
+					tokens.add(token);
+			}
+			if (useCurrentSpan){
+				for (int i = 0; i < span.size(); i++){
+					String token = span.subSpan(i, 1).asString();
+					if (!token.equals("_UNALIGNED_") && !token.equals(""))
+						tokens.add(token);
+				}
+			}
+			for (int i = 0; i < windowSize; i ++){
+				String token = from(span).right().subSpan(i, 1).getSpan().asString();
+				if (!token.equals("_UNALIGNED_") && !token.equals(""))
+					tokens.add(token);
+			}
+			*/
+			ArrayList<String> tokens = getTokenSequence(span);
+			HashMap<String, Integer> phoneCounts = getPhoneCounts(tokens);
+			for (String phone : phoneCounts.keySet()){
+				instance.addNumeric(new Feature(phone), phoneCounts.get(phone));
+			}
+		}
+		
+		public ArrayList<String> getTokenSequence(Span span)
+		{
 			ArrayList<String> tokens = new ArrayList<String>();
 			//add token to list of tokens in left to right order
 			for (int i = windowSize; i > 0; i--){
@@ -125,11 +157,10 @@ public class TestCRF {
 					tokens.add(token);
 			}
 			
-			HashMap<String, Integer> phoneCounts = getPhoneCounts(tokens);
-			for (String phone : phoneCounts.keySet()){
-				instance.addNumeric(new Feature(phone), phoneCounts.get(phone));
-			}
+			return tokens;
 		}
+		
+		
 		private HashMap<String, Integer> getPhoneCounts(ArrayList<String> tokens){
 			HashMap<String, Integer> phoneUnigramCounts = new HashMap<String, Integer>();
 			for (String token : tokens){
@@ -143,6 +174,8 @@ public class TestCRF {
 			} 
 			return phoneUnigramCounts;
 		}
+		
+		
 	}
 	public static class PhoneBigramFE extends PhoneUnigramFE{
 		private HashMap<String, Integer> getPhoneCounts(ArrayList<String> tokens){
@@ -162,4 +195,8 @@ public class TestCRF {
 			return phoneBigramCounts;
 		}
 	}
+	
+	
+	
+	
 }
