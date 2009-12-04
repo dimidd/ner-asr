@@ -47,9 +47,7 @@ public class TestCRF {
 
 			// set the features that this learner will use
 			//learner.setSpanFeatureExtractor(vanillaFE);
-			CustomFE.PhoneUnigramFE fe = new CustomFE.PhoneUnigramFE();
-			fe.setUseCurrentSpan(true);
-			//fe.setWindowSize(3);
+			CustomFE.PhoneFE fe = new CustomFE.PhoneFE(3, false, true, false, true);
 
 			learner.setSpanFeatureExtractor(fe);
 			learner.setAnnotationType("_prediction");
