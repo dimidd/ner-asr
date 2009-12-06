@@ -135,10 +135,14 @@ public class CustomFE {
 			tokenPhones += " ";
 			ArrayList<String> results = new ArrayList<String>();
 			//replace phones in a certain class with its class name
-			String[][] partitions = {{"vowel", "consonant"}, 
-					{"non-sibilant", "sibilant","vowel", "sonorant"},
-					{"non-sibilant", "sibilant","sonorant","vowel-front","vowel-mid","vowel-back",},
-					{"glide","nasal","plosive","fricative","approximant","trill","glide","vowel-front","vowel-mid","vowel-back"}};
+			String[] partition1 = {"vowel", "consonant"}; 
+			String[] partition2 = {"temp1", "temp2", "temp3", "temp4", "temp5", "temp6", "temp7",
+					"temp8", "temp9", "temp10", "temp11", "temp12", "temp13", "temp14"};
+			String[] partition3 = {"non-sibilant", "sibilant","vowel", "sonorant"};
+			String[] partition4 = {"non-sibilant", "sibilant","sonorant","vowel-front","vowel-mid","vowel-back",};
+			String[] partition5 = {"glide","nasal","plosive","fricative","approximant","trill","glide","vowel-front","vowel-mid","vowel-back"};
+			
+			String[][] partitions = {partition1, partition2};
 			for (String[] partition : partitions){
 				String currentResult = tokenPhones;
 				for (String type : partition){
@@ -158,15 +162,64 @@ public class CustomFE {
 			}
 			else if (type.equals("consonant")){
 				surfacePattern = "((b|d|g|p|q|t|k|dx|bcl|dcl|gcl|pcl|tcl|kcl|jh|ch|z|zh|" +
-						"v|dh|s|sh|f|v|th|m|n|nx|ng|em|en|eng|l|r|y|w|el|hh|hv|"+
-						"pau|epi|wb|sb )+";
+						"v|dh|s|sh|f|v|th|m|n|nx|ng|em|en|eng|l|r|y|w|el|hh|hv )+";
 				typePattern = "c+";
 			}
-			else if (type.equals("voiced")){
-				//TODO : fill out voiced phones
+			else if (type.equals("temp1")){
+				surfacePattern = "((b|p) )+";
+				typePattern = "b+";
 			}
-			else if (type.equals("unvoiced")){
-				//TODO : fill out unvoiced phones
+			else if (type.equals("temp2")){
+				surfacePattern = "((d|t|dx) )+";
+				typePattern = "d+";
+			}
+			else if (type.equals("temp3")){
+				surfacePattern = "((g|k|q) )+";
+				typePattern = "g+";
+			}
+			else if (type.equals("temp4")){
+				surfacePattern = "((jh|ch|) )+";
+				typePattern = "jh+";
+			}
+			else if (type.equals("temp5")){
+				surfacePattern = "((s|sh|z|zh) )+";
+				typePattern = "s+";
+			}
+			else if (type.equals("temp6")){
+				surfacePattern = "((dh|th) )+";
+				typePattern = "dh+";
+			}
+			else if (type.equals("temp7")){
+				surfacePattern = "((f|v) )+";
+				typePattern = "f+";
+			}
+			else if (type.equals("temp8")){
+				surfacePattern = "((l|r|ely|w) )+";
+				typePattern = "l+";
+			}
+			else if (type.equals("temp9")){
+				surfacePattern = "((m|n|nx|ng|em|en|eng) )+";
+				typePattern = "m+";
+			}
+			else if (type.equals("temp10")){
+				surfacePattern = "((hh|hv) )+";
+				typePattern = "hh+";
+			}
+			else if (type.equals("temp11")){
+				surfacePattern = "((iy|ih|eh|ae) )+";
+				typePattern = "iy+";
+			}
+			else if (type.equals("temp12")){
+				surfacePattern = "((aa|er|ah|ax|ao) )+";
+				typePattern = "aa+";
+			}
+			else if (type.equals("temp13")){
+				surfacePattern = "((uw|uh|ow) )+";
+				typePattern = "uw+";
+			}
+			else if (type.equals("temp14")){
+				surfacePattern = "((axr|ax-h) )+";
+				typePattern = "axr+";
 			}
 			//TODO: add more phone classes
 			
@@ -259,4 +312,15 @@ public class CustomFE {
 		
 	}
 
+	public static class CompositeFE extends SpanFE{
+		private ArrayList<SpanFE> featureList;
+		public void addFeature(SpanFE fe){
+			featureList.add(fe);
+		}
+		public void extractFeatures(TextLabels labels, Span span){
+			for (SpanFE fe : featureList){
+				fe.extractFeatures(labels, span);
+			}
+		}
+	}
 }

@@ -47,9 +47,12 @@ public class TestCRF {
 
 			// set the features that this learner will use
 			//learner.setSpanFeatureExtractor(vanillaFE);
-			CustomFE.PhoneFE fe = new CustomFE.PhoneFE(3, false, true, false, true);
+			SpanFE phoneFE = new CustomFE.PhoneFE(3, false, true, false, true);
+			CustomFE.CompositeFE compositeFE = new CustomFE.CompositeFE();
+			compositeFE.addFeature(vanillaFE);
+			compositeFE.addFeature(phoneFE);
 
-			learner.setSpanFeatureExtractor(fe);
+			learner.setSpanFeatureExtractor(compositeFE);
 			learner.setAnnotationType("_prediction");
 			int num_partitions = 10;
 			CrossValSplitter<Span> splitter=new CrossValSplitter<Span>(num_partitions);
@@ -64,9 +67,4 @@ public class TestCRF {
 			e.printStackTrace();
 		}
 	}
-
-
-
-
-
 }
