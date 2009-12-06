@@ -135,7 +135,10 @@ public class CustomFE {
 			tokenPhones += " ";
 			ArrayList<String> results = new ArrayList<String>();
 			//replace phones in a certain class with its class name
-			String[][] partitions = {{"vowel", "consonant"}, {"non-sibilant", "sibilant","vowel", "sonorant"},{"non-sibilant", "sibilant","sonorant","vowel-front","vowel-mid","vowel-back",},{"glide","nasal","plosive","fricative","approximant","trill","glide","vowel-front","vowel-mid","vowel-back"}};
+			String[][] partitions = {{"vowel", "consonant"}, 
+					{"non-sibilant", "sibilant","vowel", "sonorant"},
+					{"non-sibilant", "sibilant","sonorant","vowel-front","vowel-mid","vowel-back",},
+					{"glide","nasal","plosive","fricative","approximant","trill","glide","vowel-front","vowel-mid","vowel-back"}};
 			for (String[] partition : partitions){
 				String currentResult = tokenPhones;
 				for (String type : partition){
@@ -198,10 +201,11 @@ public class CustomFE {
 			
 			ArrayList<String> tokens = getTokenSequence(span);
 			String parseStr = getParse(tokens);
-			System.out.println(parseStr);
+			
 			
 			if(parseStr.startsWith("(ROOT (NP "))
 			{
+				System.out.println(parseStr);
 				instance.addBinary(new Feature("NP"));
 			}
 			
