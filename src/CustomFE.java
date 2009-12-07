@@ -2,9 +2,11 @@ import java.io.*;
 import java.util.*;
 
 import edu.cmu.minorthird.classify.Feature;
+import edu.cmu.minorthird.classify.Instance;
 import edu.cmu.minorthird.text.Span;
 import edu.cmu.minorthird.text.TextLabels;
 import edu.cmu.minorthird.text.learn.SpanFE;
+import edu.cmu.minorthird.util.gui.ViewerFrame;
 import edu.stanford.nlp.trees.*;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 
@@ -162,7 +164,7 @@ public class CustomFE {
 			}
 			else if (type.equals("consonant")){
 				surfacePattern = "((b|d|g|p|q|t|k|dx|bcl|dcl|gcl|pcl|tcl|kcl|jh|ch|z|zh|" +
-						"v|dh|s|sh|f|v|th|m|n|nx|ng|em|en|eng|l|r|y|w|el|hh|hv )+";
+						"v|dh|s|sh|f|v|th|m|n|nx|ng|em|en|eng|l|r|y|w|el|hh|hv) )+";
 				typePattern = "c+";
 			}
 			else if (type.equals("temp1")){
@@ -314,12 +316,24 @@ public class CustomFE {
 
 	public static class CompositeFE extends SpanFE{
 		private ArrayList<SpanFE> featureList;
+		public CompositeFE(){
+			featureList = new ArrayList<SpanFE>();
+		}
 		public void addFeature(SpanFE fe){
 			featureList.add(fe);
 		}
 		public void extractFeatures(TextLabels labels, Span span){
 			for (SpanFE fe : featureList){
-				fe.extractFeatures(labels, span);
+				Instance inst = fe.extractInstance(labels, span);
+				Iterator<Feature> binaryIt = inst.binaryFeatureIterator();
+				Iterator<Feature> numericIt = inst.numericFeatureIterator();
+				while (binaryIt.hasNext()){
+					instance.addBinary(binaryIt.next());
+				}
+				while (numericIt.hasNext()){
+					Feature f = numericIt.next();
+					instance.addNumeric(f, inst.getWeight(f));
+				}
 			}
 		}
 	}

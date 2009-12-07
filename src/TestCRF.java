@@ -16,7 +16,7 @@ public class TestCRF {
 			//String dirName = "experiments/bad_asr/data";
 
 			//load phone pronunciations into memory
-			CustomFE.loadPhonemicSpellings(dirName+"../phone_spellings");
+			CustomFE.loadPhonemicSpellings(dirName+"/../phone_spellings");
 
 			// load data from dataDir into labels
 			File dataDir = new File(dirName);
