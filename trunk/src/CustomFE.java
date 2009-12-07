@@ -48,12 +48,6 @@ public class CustomFE {
 		}
 		
 		public void extractFeatures(TextLabels labels, Span span){
-			// add bag of words for all tokens in this span and in the surrounding
-			// window of size windowSize
-			from(span).tokens().emit();
-			from(span).left().subSpan(- windowSize, windowSize).emit();
-			from(span).right().subSpan(0, windowSize).emit();
-			
 			//System.out.println("Currently in document: "+span.getDocumentId());
 			
 			ArrayList<String> tokens = getTokenSequence(span);
