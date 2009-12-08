@@ -36,14 +36,16 @@ public class CustomFE {
 		protected boolean useCurrentSpan = false;
 		protected boolean usePhoneUnigrams = true;
 		protected boolean usePhoneBigrams = false;
+		protected boolean usePhoneTypes = true;
 		protected boolean usePhoneTypePattern = true;
 		
 		public PhoneFE(int windowSize, boolean useCurrentSpan,boolean usePhoneUnigrams,
-				boolean usePhoneBigrams, boolean usePhoneTypePattern){
+				boolean usePhoneBigrams, boolean usePhoneTypes, boolean usePhoneTypePattern){
 			this.windowSize = windowSize;
 			this.useCurrentSpan = usePhoneBigrams ? true : useCurrentSpan;
 			this.usePhoneUnigrams = usePhoneUnigrams;
 			this.usePhoneBigrams = usePhoneBigrams;
+			this.usePhoneTypes = usePhoneTypes;
 			this.usePhoneTypePattern = usePhoneTypePattern;
 		}
 		
@@ -61,6 +63,13 @@ public class CustomFE {
 				for (String phone : phoneBigramCounts.keySet())
 					instance.addNumeric(new Feature(phone), phoneBigramCounts.get(phone));
 			}
+			if (usePhoneTypes){
+				for (String token : tokens){
+					ArrayList<String> phoneTypeSequences = getPhoneTypeSequences(token);
+					for (String sequence : phoneTypeSequences)
+						instance.addBinary(new Feature(sequence));
+				}
+			}
 			if (usePhoneTypePattern){
 				for (String token : tokens){
 					ArrayList<String> phoneTypePatterns = getPhoneTypePattern(token);
@@ -70,6 +79,11 @@ public class CustomFE {
 			}
 		}
 		
+		/** given a span, return the sequence of token in the window surrounding it with radius windowSize
+		 * 
+		 * @param span  the Span in consideration
+		 * @return ArrayList of tokens in the desired window
+		 */
 		public ArrayList<String> getTokenSequence(Span span)
 		{
 			ArrayList<String> tokens = new ArrayList<String>();
@@ -95,7 +109,11 @@ public class CustomFE {
 			return tokens;
 		}
 		
-		
+		/** given a sequence of tokens, return the phone unigrams in that sequence, together with their counts
+		 * 
+		 * @param tokens  ArrayList of String of tokens being analyzed
+		 * @return a map from the phone name (String) to its counts (Integer)
+		 */
 		private HashMap<String, Integer> getPhoneUnigramCounts(ArrayList<String> tokens){
 			HashMap<String, Integer> phoneUnigramCounts = new HashMap<String, Integer>();
 			for (String token : tokens){
@@ -110,6 +128,11 @@ public class CustomFE {
 			return phoneUnigramCounts;
 		}
 		
+		/** given a sequence of tokens, return the phone bigrams in that sequence, together with their counts
+		 * 
+		 * @param tokens  ArrayList of String of tokens being analyzed
+		 * @return a map from the phone bigram (String) to its counts (Integer)
+		 */
 		private HashMap<String, Integer> getPhoneBigramCounts(ArrayList<String> tokens){
 			HashMap<String, Integer> phoneBigramCounts = new HashMap<String, Integer>();
 			ArrayList<String> phoneUnigrams = new ArrayList<String>();
@@ -126,11 +149,64 @@ public class CustomFE {
 			}
 			return phoneBigramCounts;
 		}
+		
+		/** given a token, produce the different phone type patterns that can be produced
+		 * 
+		 * @param token  a String for the token
+		 * @return ArrayList of phone type sequences, each produced using a partition of phones into phone classes
+		 */
+		private ArrayList<String> getPhoneTypeSequences(String token){
+			String tokenPhones = phonemicSpelling.get(token);
+			tokenPhones += " ";
+			ArrayList<String>results = new ArrayList<String>();
+			//each "partition" is a partitioning of the set of phones into equivalence phone classes
+			//one example of a partition is {"vowel", "consonant"}
+			String[][] partitions = getPartitions();
+			for (String[] partition : partitions){
+				String currentResult = tokenPhones;
+				// for each phone type in the partition, replace all phones of that type
+				// with the type name
+				for (String type : partition){
+					String[] phoneTypeAssoc = getPhoneTypeAssoc(type);
+					currentResult = currentResult.replaceAll(phoneTypeAssoc[0], phoneTypeAssoc[1]);
+				}
+				results.add(currentResult);
+			}
+			return results;
+		}
+		
+		/** given a token, produce the different phone type patterns that can be produced
+		 * 
+		 * @param token  a String for the token
+		 * @return ArrayList of phoneTypePatterns, each produced using a partition of phones into phone classes
+		 */
 		private ArrayList<String> getPhoneTypePattern(String token){
 			String tokenPhones = phonemicSpelling.get(token);
 			tokenPhones += " ";
 			ArrayList<String> results = new ArrayList<String>();
-			//replace phones in a certain class with its class name
+			//each "partition" is a partitioning of the set of phones into equivalence phone classes
+			//one example of a partition is {"vowel", "consonant"}
+			String[][] partitions = getPartitions();
+			for (String[] partition : partitions){
+				String currentResult = tokenPhones;
+				// for each phone type in the partition, replace all sequences of phones of that type
+				// with the corresponding regular expression, e.g. "phone" to "c+v+c+v+", 
+				// where c is short for "consonant", v is short for "vowel"
+				for (String type : partition){
+					String[] phoneTypeAssoc = getPhoneTypeAssoc(type);
+					currentResult = currentResult.replaceAll(phoneTypeAssoc[0]+"+", phoneTypeAssoc[1]+"+");
+				}
+				results.add(currentResult);
+			}
+			return results;
+		}
+		
+		/** each "partition" is a partitioning of the set of phones into equivalence phone classes
+		 * one example of a partition is {"vowel", "consonant"}
+		 * 
+		 * @return array of partitions, each partition represented as an array of strings
+		 */
+		private String[][] getPartitions(){
 			String[] partition1 = {"vowel", "consonant"}; 
 			String[] partition2 = {"temp1", "temp2", "temp3", "temp4", "temp5", "temp6", "temp7",
 					"temp8", "temp9", "temp10", "temp11", "temp12", "temp13", "temp14"};
@@ -138,84 +214,81 @@ public class CustomFE {
 			String[] partition4 = {"non-sibilant", "sibilant","sonorant","vowel-front","vowel-mid","vowel-back",};
 			String[] partition5 = {"glide","nasal","plosive","fricative","approximant","trill","glide","vowel-front","vowel-mid","vowel-back"};
 			
-			String[][] partitions = {partition1, partition2};
-			for (String[] partition : partitions){
-				String currentResult = tokenPhones;
-				for (String type : partition){
-					String[] patternAssoc = getPatternAssoc(type);
-					currentResult = currentResult.replaceAll(patternAssoc[0], patternAssoc[1]);
-				}
-				results.add(currentResult);
-			}
+			String[][] results = {partition1, partition2};
 			return results;
 		}
-		private String[] getPatternAssoc(String type){
+		/** for each phone class (type) supplied, return the phones in that class and the symbol 
+		 * to be used for that class
+		 * @param type  String that tells the name of the phone class
+		 * @return array of 2 strings, the first of which is the regular expression used to find a phone in this class, the second is the symbol used for the class
+		 */
+		private String[] getPhoneTypeAssoc(String type){
 			String surfacePattern = "";
 			String typePattern = "";
 			if (type.equals("vowel")){
-				surfacePattern = "((iy|ih|eh|ae|aa|er|ah|ax|ao|uw|uh|ow|axr|ax-h) )+";
-				typePattern = "v+";
+				surfacePattern = "((iy|ih|eh|ae|aa|er|ah|ax|ao|uw|uh|ow|axr|ax-h) )";
+				typePattern = "v";
 			}
 			else if (type.equals("consonant")){
 				surfacePattern = "((b|d|g|p|q|t|k|dx|bcl|dcl|gcl|pcl|tcl|kcl|jh|ch|z|zh|" +
-						"v|dh|s|sh|f|v|th|m|n|nx|ng|em|en|eng|l|r|y|w|el|hh|hv) )+";
-				typePattern = "c+";
+						"v|dh|s|sh|f|v|th|m|n|nx|ng|em|en|eng|l|r|y|w|el|hh|hv) )";
+				typePattern = "c";
 			}
 			else if (type.equals("temp1")){
-				surfacePattern = "((b|p) )+";
-				typePattern = "b+";
+				surfacePattern = "((b|p) )";
+				typePattern = "b";
 			}
 			else if (type.equals("temp2")){
-				surfacePattern = "((d|t|dx) )+";
-				typePattern = "d+";
+				surfacePattern = "((d|t|dx) )";
+				typePattern = "d";
 			}
 			else if (type.equals("temp3")){
-				surfacePattern = "((g|k|q) )+";
-				typePattern = "g+";
+				surfacePattern = "((g|k|q) )";
+				typePattern = "g";
 			}
 			else if (type.equals("temp4")){
-				surfacePattern = "((jh|ch|) )+";
-				typePattern = "jh+";
+				surfacePattern = "((jh|ch|) )";
+				typePattern = "jh";
 			}
 			else if (type.equals("temp5")){
-				surfacePattern = "((s|sh|z|zh) )+";
-				typePattern = "s+";
+				surfacePattern = "((s|sh|z|zh) )";
+				typePattern = "s";
 			}
 			else if (type.equals("temp6")){
-				surfacePattern = "((dh|th) )+";
-				typePattern = "dh+";
+				surfacePattern = "((dh|th) )";
+				typePattern = "dh";
 			}
 			else if (type.equals("temp7")){
-				surfacePattern = "((f|v) )+";
-				typePattern = "f+";
+				surfacePattern = "((f|v) )";
+				typePattern = "f";
 			}
 			else if (type.equals("temp8")){
-				surfacePattern = "((l|r|ely|w) )+";
-				typePattern = "l+";
+				surfacePattern = "((l|r|ely|w) )";
+				typePattern = "l";
 			}
 			else if (type.equals("temp9")){
-				surfacePattern = "((m|n|nx|ng|em|en|eng) )+";
-				typePattern = "m+";
+				surfacePattern = "((m|n|nx|ng|em|en|eng) )";
+				typePattern = "m";
 			}
 			else if (type.equals("temp10")){
-				surfacePattern = "((hh|hv) )+";
-				typePattern = "hh+";
+				surfacePattern = "((hh|hv) )";
+				typePattern = "hh";
 			}
 			else if (type.equals("temp11")){
-				surfacePattern = "((iy|ih|eh|ae) )+";
-				typePattern = "iy+";
+				surfacePattern = "((iy|ih|eh|ae) )";
+				typePattern = "iy";
 			}
 			else if (type.equals("temp12")){
-				surfacePattern = "((aa|er|ah|ax|ao) )+";
-				typePattern = "aa+";
+				surfacePattern = "((aa|er|ah|ax|ao) )";
+				typePattern = "aa";
 			}
 			else if (type.equals("temp13")){
-				surfacePattern = "((uw|uh|ow) )+";
-				typePattern = "uw+";
+				surfacePattern = "((uw|uh|ow) )";
+				typePattern = "uw";
 			}
 			else if (type.equals("temp14")){
-				surfacePattern = "((axr|ax-h) )+";
-				typePattern = "axr+";
+				surfacePattern = "((axr|ax-h) )";
+				typePattern = "axr";
 			}
 			//TODO: add more phone classes
 			

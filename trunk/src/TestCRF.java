@@ -47,10 +47,11 @@ public class TestCRF {
 
 			// set the features that this learner will use
 			//learner.setSpanFeatureExtractor(vanillaFE);
-			SpanFE phoneFE = new CustomFE.PhoneFE(3, false, true, false, true);
+			SpanFE phoneFE = new CustomFE.PhoneFE(3, false, true, false, true, true);
 			CustomFE.CompositeFE compositeFE = new CustomFE.CompositeFE();
-			compositeFE.addFeature(vanillaFE);
+			//compositeFE.addFeature(vanillaFE);
 			compositeFE.addFeature(phoneFE);
+			compositeFE.addFeature(vanillaFE);
 
 			learner.setSpanFeatureExtractor(compositeFE);
 			learner.setAnnotationType("_prediction");
