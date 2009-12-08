@@ -79,7 +79,8 @@ public class CustomFE {
 			}
 		}
 		
-		/** given a span, return the sequence of token in the window surrounding it with radius windowSize
+		/** 
+		 * given a span, return the sequence of token in the window surrounding it with radius windowSize
 		 * 
 		 * @param span  the Span in consideration
 		 * @return ArrayList of tokens in the desired window
@@ -109,7 +110,8 @@ public class CustomFE {
 			return tokens;
 		}
 		
-		/** given a sequence of tokens, return the phone unigrams in that sequence, together with their counts
+		/** 
+		 * given a sequence of tokens, return the phone unigrams in that sequence, together with their counts
 		 * 
 		 * @param tokens  ArrayList of String of tokens being analyzed
 		 * @return a map from the phone name (String) to its counts (Integer)
@@ -128,7 +130,8 @@ public class CustomFE {
 			return phoneUnigramCounts;
 		}
 		
-		/** given a sequence of tokens, return the phone bigrams in that sequence, together with their counts
+		/** 
+		 * given a sequence of tokens, return the phone bigrams in that sequence, together with their counts
 		 * 
 		 * @param tokens  ArrayList of String of tokens being analyzed
 		 * @return a map from the phone bigram (String) to its counts (Integer)
@@ -150,7 +153,8 @@ public class CustomFE {
 			return phoneBigramCounts;
 		}
 		
-		/** given a token, produce the different phone type patterns that can be produced
+		/** 
+		 * given a token, produce the different phone type patterns that can be produced
 		 * 
 		 * @param token  a String for the token
 		 * @return ArrayList of phone type sequences, each produced using a partition of phones into phone classes
@@ -175,7 +179,8 @@ public class CustomFE {
 			return results;
 		}
 		
-		/** given a token, produce the different phone type patterns that can be produced
+		/** 
+		 * given a token, produce the different phone type patterns that can be produced
 		 * 
 		 * @param token  a String for the token
 		 * @return ArrayList of phoneTypePatterns, each produced using a partition of phones into phone classes
@@ -201,7 +206,8 @@ public class CustomFE {
 			return results;
 		}
 		
-		/** each "partition" is a partitioning of the set of phones into equivalence phone classes
+		/** 
+		 * each "partition" is a partitioning of the set of phones into equivalence phone classes
 		 * one example of a partition is {"vowel", "consonant"}
 		 * 
 		 * @return array of partitions, each partition represented as an array of strings
@@ -217,8 +223,10 @@ public class CustomFE {
 			String[][] results = {partition1, partition2};
 			return results;
 		}
-		/** for each phone class (type) supplied, return the phones in that class and the symbol 
+		/** 
+		 * for each phone class (type) supplied, return the phones in that class and the symbol 
 		 * to be used for that class
+		 * 
 		 * @param type  String that tells the name of the phone class
 		 * @return array of 2 strings, the first of which is the regular expression used to find a phone in this class, the second is the symbol used for the class
 		 */
