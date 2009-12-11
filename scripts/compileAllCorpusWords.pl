@@ -1,8 +1,8 @@
 #my $dataDir = "../experiments/nice_asr/labeled/*.asr";
 #my $outputFile = "../experiments/nice_asr/setOfWords.txt";
 
-my $dataDir = "../experiments/bad_asr/data/*.hyp";
-my $outputFile = "../experiments/bad_asr/setOfWords.txt";
+my $dataDir = "../experiments/220_asr/labeled/*.asr";
+my $outputFile = "../experiments/220_asr/setOfWords.txt";
 
 my @files = `ls $dataDir`;
 my %wordSet;
