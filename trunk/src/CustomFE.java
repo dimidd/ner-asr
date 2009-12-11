@@ -36,16 +36,19 @@ public class CustomFE {
 		protected boolean useCurrentSpan = false;
 		protected boolean usePhoneUnigrams = true;
 		protected boolean usePhoneBigrams = false;
-		protected boolean usePhoneTypes = true;
+		protected boolean usePhoneTypeUnigrams = true;
+		protected boolean usePhoneTypeSequence = true;
 		protected boolean usePhoneTypePattern = true;
 		
 		public PhoneFE(int windowSize, boolean useCurrentSpan,boolean usePhoneUnigrams,
-				boolean usePhoneBigrams, boolean usePhoneTypes, boolean usePhoneTypePattern){
+				boolean usePhoneBigrams, boolean usePhoneTypeUnigrams,
+				boolean usePhoneTypeSequence, boolean usePhoneTypePattern){
 			this.windowSize = windowSize;
 			this.useCurrentSpan = usePhoneBigrams ? true : useCurrentSpan;
 			this.usePhoneUnigrams = usePhoneUnigrams;
 			this.usePhoneBigrams = usePhoneBigrams;
-			this.usePhoneTypes = usePhoneTypes;
+			this.usePhoneTypeUnigrams = usePhoneTypeUnigrams;
+			this.usePhoneTypeSequence = usePhoneTypeSequence;
 			this.usePhoneTypePattern = usePhoneTypePattern;
 		}
 		
@@ -63,7 +66,14 @@ public class CustomFE {
 				for (String phone : phoneBigramCounts.keySet())
 					instance.addNumeric(new Feature(phone), phoneBigramCounts.get(phone));
 			}
-			if (usePhoneTypes){
+			if (usePhoneTypeUnigrams){
+				for (String token : tokens){
+					HashMap<String, Integer> phoneTypeUnigramCounts = getPhoneTypeUnigramCounts(token);
+					for (String phoneType : phoneTypeUnigramCounts.keySet())
+						instance.addNumeric(new Feature(phoneType), phoneTypeUnigramCounts.get(phoneType));
+				}
+			}
+			if (usePhoneTypeSequence){
 				for (String token : tokens){
 					ArrayList<String> phoneTypeSequences = getPhoneTypeSequences(token);
 					for (String sequence : phoneTypeSequences)
@@ -153,6 +163,25 @@ public class CustomFE {
 			return phoneBigramCounts;
 		}
 		
+		/**
+		 * given a token, return the bag of phone types that can be produced
+		 * @param token   String holding the token
+		 * @return HashMap from phoneTypeUnigrams to their counts
+		 */
+		private HashMap<String, Integer> getPhoneTypeUnigramCounts(String token){
+			HashMap<String, Integer> phoneTypeUnigramCounts = new HashMap<String, Integer>();
+			ArrayList<String> phoneTypeSequences = getPhoneTypeSequences(token);
+			for (String phoneTypeSequence : phoneTypeSequences){
+				String[] phoneTypes = phoneTypeSequence.split("_");
+				for (String phoneType : phoneTypes){
+					int count = (phoneTypeUnigramCounts.containsKey(phoneType+"_")) ? 
+							phoneTypeUnigramCounts.get(phoneType+"_") : 0;
+					phoneTypeUnigramCounts.put(phoneType+"_", count + 1);
+				}
+			}
+			return phoneTypeUnigramCounts;
+		}
+							
 		/** 
 		 * given a token, produce the different phone type patterns that can be produced
 		 * 
@@ -234,69 +263,69 @@ public class CustomFE {
 			String surfacePattern = "";
 			String typePattern = "";
 			if (type.equals("vowel")){
-				surfacePattern = "((iy|ih|eh|ae|aa|er|ah|ax|ao|uw|uh|ow|axr|ax-h) )";
-				typePattern = "v";
+				surfacePattern = "((iy|ih|eh|ae|aa|er|ah|ay|ax|ao|aw|uw|uh|ow|oy|axr|ax-h) )";
+				typePattern = "v_";
 			}
 			else if (type.equals("consonant")){
 				surfacePattern = "((b|d|g|p|q|t|k|dx|bcl|dcl|gcl|pcl|tcl|kcl|jh|ch|z|zh|" +
 						"v|dh|s|sh|f|v|th|m|n|nx|ng|em|en|eng|l|r|y|w|el|hh|hv) )";
-				typePattern = "c";
+				typePattern = "c_";
 			}
 			else if (type.equals("temp1")){
 				surfacePattern = "((b|p) )";
-				typePattern = "b";
+				typePattern = "b_";
 			}
 			else if (type.equals("temp2")){
 				surfacePattern = "((d|t|dx) )";
-				typePattern = "d";
+				typePattern = "d_";
 			}
 			else if (type.equals("temp3")){
 				surfacePattern = "((g|k|q) )";
-				typePattern = "g";
+				typePattern = "g_";
 			}
 			else if (type.equals("temp4")){
-				surfacePattern = "((jh|ch|) )";
-				typePattern = "jh";
+				surfacePattern = "((jh|ch) )";
+				typePattern = "jh_";
 			}
 			else if (type.equals("temp5")){
 				surfacePattern = "((s|sh|z|zh) )";
-				typePattern = "s";
+				typePattern = "s_";
 			}
 			else if (type.equals("temp6")){
 				surfacePattern = "((dh|th) )";
-				typePattern = "dh";
+				typePattern = "dh_";
 			}
 			else if (type.equals("temp7")){
 				surfacePattern = "((f|v) )";
-				typePattern = "f";
+				typePattern = "f_";
 			}
 			else if (type.equals("temp8")){
 				surfacePattern = "((l|r|ely|w) )";
-				typePattern = "l";
+				typePattern = "l_";
 			}
 			else if (type.equals("temp9")){
 				surfacePattern = "((m|n|nx|ng|em|en|eng) )";
-				typePattern = "m";
+				typePattern = "m_";
 			}
 			else if (type.equals("temp10")){
 				surfacePattern = "((hh|hv) )";
-				typePattern = "hh";
+				typePattern = "hh_";
 			}
 			else if (type.equals("temp11")){
-				surfacePattern = "((iy|ih|eh|ae) )";
-				typePattern = "iy";
+				surfacePattern = "((iy|ih|eh|ae|ay|aw) )";
+				typePattern = "iy_";
 			}
 			else if (type.equals("temp12")){
 				surfacePattern = "((aa|er|ah|ax|ao) )";
-				typePattern = "aa";
+				typePattern = "aa_";
 			}
 			else if (type.equals("temp13")){
-				surfacePattern = "((uw|uh|ow) )";
-				typePattern = "uw";
+				surfacePattern = "((uw|uh|ow|oy) )";
+				typePattern = "uw_";
 			}
 			else if (type.equals("temp14")){
 				surfacePattern = "((axr|ax-h) )";
-				typePattern = "axr";
+				typePattern = "axr_";
 			}
 			//TODO: add more phone classes
 			
@@ -335,7 +364,7 @@ public class CustomFE {
 			
 			if(parseStr.startsWith("(ROOT (NP "))
 			{
-				System.out.println(parseStr);
+				//System.out.println(parseStr);
 				instance.addBinary(new Feature("NP"));
 			}
 			
@@ -350,14 +379,14 @@ public class CustomFE {
 		    //parse.pennPrint();
 		    //System.out.println();
 
-		    TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-		    GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
-		    GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
-		    Collection tdl = gs.typedDependenciesCollapsed();
+		    //TreebankLanguagePack tlp = new PennTreebankLanguagePack();
+		    //GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
+		    //GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
+		   // Collection tdl = gs.typedDependenciesCollapsed();
 		    //System.out.println(tdl);
 		    //System.out.println();
 
-		    TreePrint tp = new TreePrint("penn,typedDependenciesCollapsed");
+		    //TreePrint tp = new TreePrint("penn,typedDependenciesCollapsed");
 		    //tp.printTree(parse);
 		    
 		    return parse.flatten().toString();

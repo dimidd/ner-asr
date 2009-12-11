@@ -5,6 +5,7 @@ import edu.cmu.minorthird.text.learn.*;
 import edu.cmu.minorthird.text.learn.experiments.ExtractionEvaluation;
 import edu.cmu.minorthird.text.learn.experiments.TextLabelsExperiment;
 import edu.cmu.minorthird.ui.Recommended;
+import edu.cmu.minorthird.ui.Recommended.SVMCMMLearner;
 import edu.cmu.minorthird.util.gui.SmartVanillaViewer;
 import edu.cmu.minorthird.util.gui.ViewerFrame;
 
@@ -12,7 +13,7 @@ public class TestCRF {
 
 	public static void main(String[] args){
 		try{
-			String dirName = "experiments/nice_asr/labeled";
+			String dirName = "experiments/220_asr/labeled";
 			//String dirName = "experiments/bad_asr/data";
 
 			//load phone pronunciations into memory
@@ -38,6 +39,7 @@ public class TestCRF {
 
 
 			// learner that will be used in the experiment
+			//AnnotatorLearner learner = new Recommended.CRFAnnotatorLearner();
 			AnnotatorLearner learner = new Recommended.CRFAnnotatorLearner();
 			// vanillaFE that's slightly different from the default FE, using a 
 			// window size of 4 instead of 3, and not using charTypePattern
@@ -47,11 +49,13 @@ public class TestCRF {
 
 			// set the features that this learner will use
 			//learner.setSpanFeatureExtractor(vanillaFE);
-			SpanFE phoneFE = new CustomFE.PhoneFE(3, false, true, false, true, true);
+			SpanFE phoneFE = new CustomFE.PhoneFE(3, false, true, false, true, true, true);
 			CustomFE.CompositeFE compositeFE = new CustomFE.CompositeFE();
-			//compositeFE.addFeature(vanillaFE);
-			compositeFE.addFeature(phoneFE);
+			//SpanFE parserFE = new CustomFE.ParserFE();
 			compositeFE.addFeature(vanillaFE);
+			compositeFE.addFeature(phoneFE);
+			//compositeFE.addFeature(parserFE);
+			
 
 			learner.setSpanFeatureExtractor(compositeFE);
 			learner.setAnnotationType("_prediction");
