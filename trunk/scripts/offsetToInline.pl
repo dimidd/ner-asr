@@ -2,13 +2,13 @@ use strict;
 use warnings;
 
 my $exptDir = "../experiments";
-my $destDir = "$exptDir/nice_asr/labeled";
-my $hypFile = "$exptDir/hyps_79_tdt4.txt";
-my $offsetFile = "$exptDir/hyp_tdt4_offsets";
+my $destDir = "$exptDir/220_asr/labeled";
+my $hypFile = "$exptDir/220_asr/hyps_tdt4.txt";
+my $offsetFile = "$exptDir/220_asr/neat_hyp_offsets";
 #my $destDir = "$exptDir/bad_asr/data";
 #my $hypFile = "$exptDir/hyps_79_mod.txt";
 #my $offsetFile = "$exptDir/hyp_offsets";
-my $namesFile = "$exptDir/file_names.log";
+my $namesFile = "$exptDir/220_asr/220_file_names.log";
 
 open HYP, "<$hypFile" or die("Can't open $hypFile");
 open OFF, "<$offsetFile" or die("Can't open $offsetFile");
@@ -21,7 +21,7 @@ my @names = <NAMES>;
 for (my $i = 0; $i < scalar(@hyps); $i++){
   my $curHyp = $hyps[$i];
   my $curOff = $offs[$i];
-  my $curName = $destDir."/".substr($names[$i], 0, -5)."_labeled.asr";
+  my $curName = $destDir."/".substr($names[$i], 0, -15)."_labeled.asr";
   #my $curName = $destDir."/".$names[$i];
   my (@starts, @ends);
   while ($curOff =~ /beg: (\d*) end: (\d*)/g){
